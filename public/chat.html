@@ -4,76 +4,7 @@
     <title>Public Stateless Chat Service</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; position: relative; }
-      form { padding: 3px; position: fixed; bottom: 0; width: 100%; border-top: 2px solid #7f8c8d;}
-      form input {  
-        padding: 10px; width: 90%; margin-right: .5%; }
-      form button { 
-        width: 9%; 
-        height: 40px;
-        background-color: #e67e22; 
-        border: none; 
-        padding: 10px; 
-      }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
-      #chat-event{
-        position:fixed;
-        right:0px;
-        bottom:10%;
-        border-color: red;
-        border-width: 2px;
-      }
-
-      .welcome {
-        background-color: rgba(0,0,0,0.9);
-        position:absolute;
-        width:100%; 
-        height:100vh;
-        z-index: 1;
-        display:flex;
-        flex-direction: column;
-        justify-content: space-around;
-        align-items: center;
-      }
-      .welcome h2 {
-        color: #fff;
-        letter-spacing: 0.2em;
-      }
-      .welcome input {
-        border: none;
-        height: 40px;
-        border-radius: 2px;
-        background-color:transparent;
-        border-bottom: 2px solid blueviolet;
-        color: #ffe;
-        font-weight: bold;
-        letter-spacing: 0.15em;
-      }
-      .welcome button {
-        /*border: 0;*/
-        width:100px;
-        height: 40px;
-        border-radius: 2px;
-        margin-left:20px;
-        color: #fff;
-        letter-spacing: 0.15em;
-        border-color: white;
-        background-color: transparent;
-      }
-
-      @media screen and (max-width: 768px){
-        form input {
-          width:80%;
-        }
-        form button {
-          width:19%;
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="/stylesheets/chat.css">
   </head>
   <body>
     <div class="welcome" id="login">
@@ -94,56 +25,6 @@
     <p id="chat-event"></p>
     <script src="/javascripts/socket.io.js" ></script>
     <script src="/javascripts/jquery.min.js" ></script>
-    <script>
-      $(function () {
-        var socket = io();
-        
-        let nick = "Anonymous";
-
-        $('#setNick').click(()=>{
-            let n = $('#nick').val()
-            if(n!==''){ //if user have entered something in the text field for nickname
-              nick = n;// set nick to that value;
-              $('#login').hide(); //hide the welcome/login screen
-              $('#userInfo').append($('<h3>').text("Logged In As : " + n));
-            }
-        });
-
-        $('form').submit(function(e){
-        e.preventDefault(); // prevents page reloading
-        if($('#m').val()=='') return; // prevent sending empty msg
-        let msg = nick + " : " + $('#m').val();
-        socket.emit('chat message', msg );
-        $('#m').val('');
-        return false;
-        });
-
-        socket.on('chat message', function(msg){
-          $('#messages').append($('<li>').text(msg));
-        });
-
-        $('#m').focus(function(e){
-          //console.log('focus ma xa hai');
-          $('#m').one("keyup",function(e){
-            let msg = nick + " is typing";
-            socket.emit('chat event',msg);
-          });
-        });
-
-        $('#m').focusout(function(e){
-          //console.log('focus hatyo');
-          socket.emit('chat event','');
-        });
-
-        socket.on('chat event', function(msg){
-          // console.log(msg);
-          //$('#chat-event').value=msg;
-          document.getElementById('chat-event').innerHTML = msg;
-        })
-
-  });
-
-
-    </script>
+    <script src="/javascripts/chat.js" ></script>
   </body>
 </html>
