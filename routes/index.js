@@ -12,4 +12,7 @@ router.get('/chat', function(req,res){
     //res.sendFile(__dirname + '/../chat.html');
   });
 
+router.get('/privategroupchat', (req, res) => {
+	 res.sendFile('privategroupchat.html',{root: path.resolve(__dirname,'../public')});
+});
 module.exports = router;

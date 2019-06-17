@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Public Stateless Chat Service</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <link rel="stylesheet" href="/stylesheets/privategroupchat.css">
+  </head>
+  <body>
+    <div class="welcome" id="login">
+      <h2>Welcome To Private Group Chat.</h2>
+      <h2>Create/Join Chat Room And talk privately.</h2>
+      <div class="join-or-create">
+        
+        <input type="text" name="group_name" id = "group_name" placeholder="Room Name"><br>
+        <input type="password" name="password" id="password" placeholder="Password"><br>
+        <input type="text" name="nick" id="nick" placeholder="Enter your nick here" required><br>
+        <button id="createChatRoom" >Create Chat Room</button>
+        <button id="joinChatRoom" >Join Chat Room</button>
+      </div>
+    </div>
+
+    <div id="userInfo"></div>
+    
+    <ul id="messages"></ul>
+    
+    <form action="">
+      <input id="m" autocomplete="off" /><button>Send</button>
+    </form>
+    <p id="chat-event"></p>
+    <script src="/javascripts/socket.io.js" ></script>
+    <script src="/javascripts/jquery.min.js" ></script>
+    <script src="/javascripts/privategroupchat.js" ></script>
+  </body>
+</html>

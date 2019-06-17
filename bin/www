@@ -23,20 +23,36 @@ var server = http.createServer(app);
 
 var io = require('socket.io')(server);
 
-
+let groups = [];
 
 io.sockets.on('connection', function(socket){
-  // console.log('a user connected');
+  // console.log('a user connected ID: '+ socket.id);
   
   socket.once('disconnect', function(){
     // console.log('user disconnected');
     
-    socket.broadcast.emit('chat event', "A user disconnected");
+    let index = groups.findIndex(obj => obj.members.includes(socket.id));
+    if(index == -1){     
+      socket.broadcast.emit('chat event', "A user disconnected");
     
-    setTimeout(function(){
-      socket.broadcast.emit('chat event', "");       
-    },1500);
+      setTimeout(function(){
+        socket.broadcast.emit('chat event', "");       
+      },1500);
+    
+    }else { // socket belongs to the group
 
+      let member_index = groups[index].members.indexOf(socket.id);
+      groups[index].members.splice(member_index,1);
+
+      // check if room exists in socket adaptar (socket adapter manages the room info )
+      let room = io.sockets.adapter.rooms[groups[index].group_name];
+      
+      //everyone in the room already left (room empty ) then remove chat room from groups as well
+      if ( !room || room.length <= 0 ) groups.splice(index,1);
+
+      // console.log("EXISTING GROUPS \n",JSON.stringify(groups));
+
+    }
   });
 
   socket.on('chat message', function(msg){
@@ -47,9 +63,67 @@ io.sockets.on('connection', function(socket){
   socket.on('chat event',function(msg){
     // console.log(msg);
     socket.broadcast.emit('chat event',msg);
-  })
-});
+  });
 
+  socket.on('create room',function(msgobj){
+    //check if the group_name already exists
+    let index = groups.findIndex(obj => obj.group_name == msgobj.group_name );
+    if(index != -1) {
+     //return msg that group already exists
+      socket.emit('chat room err',{status:false, msg: 'room already exists(try another room name)'});
+      return; 
+    }
+    //group doesnt exist so creating one
+    groups.push({
+      ... msgobj,
+      members: [socket.id]
+    });
+
+    socket.join(msgobj.group_name, ()=>{
+
+      socket.emit('chat room err',{status:true, msg: 'room successully created'});
+      socket.to(msgobj).emit('chat room event','A new user joined the room');
+    });
+
+  });
+  socket.on('join room', function(msgobj){
+
+    //check if the group_name exists
+    let index = groups.findIndex(obj => obj.group_name == msgobj.group_name && obj.password == msgobj.password);
+    if(index == -1){
+      //group doesn't exist i.e either groupname or password is wrong
+      socket.emit('chat room err',{status:false, msg: 'either room name or password is wrong'});
+      return;
+    }
+
+    //group name exists and its id is index
+    groups[index].members.push(socket.id);
+    
+    socket.join(msgobj.group_name, ()=>{
+      socket.to(msgobj).emit('chat room event','A new user joined the room');
+
+    });
+
+   });
+
+  socket.on('chat room message',function(msgobj){
+
+    //check if the group_name already exists
+
+    let index = groups.findIndex(obj => obj.group_name == msgobj.group_name && obj.password == msgobj.password);
+    if(index == -1) return;
+
+    io.to(msgobj.group_name).emit('chat room message', msgobj.message);
+
+  });
+
+  socket.on('chat room event',function(msgobj){
+    //send info about user events to every other sockets except the one sending it
+
+    socket.to(msgobj.group_name).emit('chat room event',msgobj.message);
+  });
+
+});
 
 /**
  * Listen on provided port, on all network interfaces.
