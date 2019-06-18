@@ -4,6 +4,7 @@
       let nick = "Anonymous";
       let group_name="";
       let password = "";
+      let crypter = null;
       //createChatRoom
       $('#createChatRoom').click(()=>{
           let g_name = $('#group_name').val()
@@ -25,6 +26,7 @@
           return;
         }
         //if no errors hide the login screen and show message screen
+        crypter = Crypt(password) //set the password(room password) for encryption and decryption of messages
         $('#login').hide(); //hide the welcome/login screen
         $('#userInfo').append($('<h3>').text("Logged In As : " + nick + " In  Group Name :"+group_name));
       });
@@ -49,12 +51,18 @@
       e.preventDefault(); // prevents page reloading
       if($('#m').val()=='') return; // prevent sending empty msg
       let msg = nick + " : " + $('#m').val();
-      socket.emit('chat room message', {group_name: group_name, password: password, message: msg} );
+
+      let encryptedmsg = crypter.encrypt(msg); //encrypt the msg with AES using room password
+
+      socket.emit('chat room message', {group_name: group_name, password: password, message: encryptedmsg} );
       $('#m').val('');
       return false;
       });
 
-      socket.on('chat room message', function(msg){
+      socket.on('chat room message', function(encryptedmsg){
+
+        let dec = crypter.decrypt(encryptedmsg); //decrypt the msg 
+        let msg = dec.toString(CryptoJS.enc.Utf8); //decode the msg 
         $('#messages').append($('<li>').text(msg));
         //scroll to the last message using jquery
         //get the pixelvalue/position of the last li element of msg
